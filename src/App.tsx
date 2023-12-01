@@ -3,9 +3,9 @@ import Container from './components/Container';
 
 function App() {
   return (
-    <>
-      <Container></Container>
-    </>
+      <div className='flex justify-center items-center border border-white my-24'>
+        <Container></Container>
+      </div>
   );
 }
 

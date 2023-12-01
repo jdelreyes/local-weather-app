@@ -44,59 +44,148 @@ type WeatherData = {
   cod: number;
 };
 
+type ForecastData = {
+  list: {
+    dt: number;
+    main: {
+      temp: number;
+      feels_like: number;
+      temp_min: number;
+      temp_max: number;
+      pressure: number;
+      sea_level: number;
+      grnd_level: number;
+      humidity: number;
+      temp_kf: number;
+    };
+    weather: {
+      id: number;
+      main: string;
+      description: string;
+      icon: string;
+    }[];
+    clouds: {
+      all: number;
+    };
+    wind: {
+      speed: number;
+      deg: number;
+      gust: number;
+    };
+    visibility: number;
+    pop: number;
+    rain?: {
+      "3h": number;
+    };
+    sys: {
+      pod: string;
+    };
+    dt_txt: string;
+  }[];
+};
+
 export default function Container() {
+  //////////////// HOOKS ////////////////
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [location, setLocation] = useState<string>('Toronto');
 
   useEffect(() => {
-    fetchWeatherData()
+    fetchCurrentWeatherData()
   }, [location]);
 
-  const changeLocation = () => {
-
-  };
-
-  const fetchWeatherData = async () => {
+  //////////////// FUNCTIONS ////////////////
+  const fetchCurrentWeatherData = async () => {
     try {
       const weatherDataResponse = await axios.get(
-        `http://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`
+        `http://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${process.env.REACT_APP_WEATHER_API_KEY}&units=metric`
       );
 
       setWeatherData(weatherDataResponse.data);
+
+      try {
+        const forecastDataResponse = await axios.get(
+          `http://api.openweathermap.org/data/2.5/forecast?lat=${weatherDataResponse.data.coord.lat}&lon=${weatherDataResponse.data.coord.lon}&appid=${process.env.REACT_APP_WEATHER_API_KEY}&units=metric&cnt=5`
+        )
+
+        setForecastData(forecastDataResponse.data)
+      } catch (error) {
+        console.error(error);
+      }
 
     } catch (error) {
       console.error(error);
     }
   };
 
+  const handleLocationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLocation = event.target.value;
+    setLocation(newLocation);
+  };
+
   return (
-    <div className="container">
-      {weatherData && (
-        <div>
-          <p>Temperature: {weatherData.main.temp}</p>
-          <p>Weather: {weatherData.weather[0].description}</p>
-          <p>Temp: {weatherData.main.temp}</p>
-          <p>Feels Like: {weatherData.main.feels_like}</p>
-          <p>Temp Min: {weatherData.main.temp_min}</p>
-          <p>Temp Max: {weatherData.main.temp_max}</p>
-          <p>Pressure: {weatherData.main.pressure}</p>
-          <p>Humidity: {weatherData.main.humidity}</p>
-          {/* Add more properties as needed */}
-          <p>Visibility: {weatherData.visibility}</p>
-          <p>Wind Speed: {weatherData.wind.speed}</p>
-          <p>Wind Degree: {weatherData.wind.deg}</p>
-          <p>Wind Gust: {weatherData.wind.gust}</p>
-          <p>Clouds: {weatherData.clouds.all}</p>
-          <p>Timestamp: {weatherData.dt}</p>
-          <p>Sunrise: {weatherData.sys.sunrise}</p>
-          <p>Sunset: {weatherData.sys.sunset}</p>
-          <p>Timezone: {weatherData.timezone}</p>
-          <p>Location ID: {weatherData.id}</p>
-          <p>Location Name: {weatherData.name}</p>
-          <p>COD: {weatherData.cod}</p>
+    <div className="container w-[900px] h-[450px] m-auto flex bg-slate-200 rounded-lg shadow-md">
+      <div className="basis-1/4">
+        <div className="rounded-lg bg-gray-200 h-full p-5">
+          <div>
+            <select value={location} onChange={handleLocationChange}>
+              <option value="default" disabled>Select a location</option>
+              <option value="Toronto">Toronto</option>
+              <option value="London">London</option>
+              <option value="New York">New York</option>
+              {/* Add more options as needed */}
+            </select>
+          </div>
+          <p className="text-2xl font-bold my-5">{new Date().toLocaleString('en-us', { weekday: 'long' })}</p>
+          <p>{new Date().toDateString()}</p>
+          <p>{weatherData?.name} {weatherData?.sys.country}</p>
+          <img src={`https://openweathermap.org/img/wn/${weatherData?.weather[0].icon}@2x.png`} alt={weatherData?.weather[0].description} />
+          <p className="text-5xl my-5">{weatherData?.main.temp} °C</p>
+          <p>{weatherData?.weather[0].description}</p>
         </div>
-      )}
+      </div>
+      <div className="basis-3/4 p-5 flex flex-col justify-between">
+        <div>
+          <ul className="flex justify-between">
+            {forecastData?.list.map((element, index) => {
+              // Calculate the date for the current forecast item
+              const forecastDate = new Date();
+              forecastDate.setDate(forecastDate.getDate() + index + 1);
+
+              return (
+                <li key={element.dt}>
+                  <img src={`https://openweathermap.org/img/wn/${element.weather[0].icon}@2x.png`} alt={element.weather[0].description} width={60} />
+                  <div>{forecastDate.toLocaleString('en-us', { weekday: 'long' })}</div>
+                  <div className="font-bold">{element.main.temp}°C</div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+        <div className="p-3">
+          <div className="flex justify-between p-1">
+            <div className="font-bold text-lg">WIND</div><div className="text-sm">{weatherData?.wind.speed} km/h</div>
+          </div>
+          <div className="flex justify-between p-1">
+            <div className="font-bold text-lg">HUMIDITY</div><div className="text-sm">{weatherData?.main.humidity} %</div>
+          </div>
+          <div className="flex justify-between p-1">
+            <div className="font-bold text-lg">MAX TEMP</div><div className="text-sm">{weatherData?.main.temp_max} °C</div>
+          </div>
+          <div className="flex justify-between p-1">
+            <div className="font-bold text-lg">MIN TEMP</div><div className="text-sm">{weatherData?.main.temp_min} °C</div>
+          </div>
+          <div className="flex justify-between p-1">
+            <div className="font-bold text-lg">AIR PRESSURE</div><div className="text-sm">{weatherData?.main.pressure} mb</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
 
+type SearchBarProps = {
+  handleSubmit: (location: string) => void;
+  location: string;
+}
