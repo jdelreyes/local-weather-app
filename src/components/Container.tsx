@@ -124,7 +124,7 @@ export default function Container() {
   };
 
   return (
-    <div className="container w-[900px] h-[450px] m-auto flex bg-slate-200 rounded-lg shadow-md">
+    <div className="container w-[1000px] h-[450px] m-auto flex bg-slate-200 rounded-lg shadow-md">
       <div className="basis-1/4">
         <div className="rounded-lg bg-gray-200 h-full p-5">
           <div>
@@ -133,7 +133,11 @@ export default function Container() {
               <option value="Toronto">Toronto</option>
               <option value="London">London</option>
               <option value="New York">New York</option>
-              {/* Add more options as needed */}
+              <option value="Manila">Manila</option>
+              <option value="Tokyo">Tokyo</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Sydney">Sydney</option>
+              <option value="Detroit">Detroit</option>
             </select>
           </div>
           <p className="text-2xl font-bold my-5">{new Date().toLocaleString('en-us', { weekday: 'long' })}</p>
@@ -183,9 +187,4 @@ export default function Container() {
 
     </div>
   );
-}
-
-type SearchBarProps = {
-  handleSubmit: (location: string) => void;
-  location: string;
 }
