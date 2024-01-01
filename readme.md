@@ -1,6 +1,6 @@
-# FULL STACK DEVELOPMENT: LAB TEST #2
-
-A React-based weather app that shows the current weather along with 5-day forecast of a location listed under a dropdown.
+# Local Weather App
+A React-based weather app that shows the current weather along with a
+5-day forecast of an approximate user's location using the their IP address.
 
 ## Current weather and 5-day forecast
 
